@@ -1302,29 +1302,29 @@ def search(query, home_dir):
     omit = frappe.db.escape(home_dir)
     result = frappe.db.sql(
         f"""
-    SELECT  `tabDrive Entity`.name,
-            `tabDrive Entity`.title, 
-            `tabDrive Entity`.owner,
-            `tabDrive Entity`.mime_type,
-            `tabDrive Entity`.is_group,
-            `tabDrive Entity`.document,
-            `tabDrive Entity`.color,
+    SELECT  `Drive Entity`.name,
+            `Drive Entity`.title, 
+            `Drive Entity`.owner,
+            `Drive Entity`.mime_type,
+            `Drive Entity`.is_group,
+            `Drive Entity`.document,
+            `Drive Entity`.color,
             `tabUser`.user_image,
             `tabUser`.full_name
-    FROM `tabDrive Entity`
-    LEFT JOIN `tabDrive DocShare`
-    ON `tabDrive DocShare`.`share_name` = `tabDrive Entity`.`name`
+    FROM `Drive Entity`
+    LEFT JOIN `Drive DocShare`
+    ON `Drive DocShare`.`share_name` = `Drive Entity`.`name`
     LEFT JOIN `tabUser Group Member`
-    ON `tabUser Group Member`.`parent` = `tabDrive DocShare`.`user_name`
-    LEFT JOIN `tabUser` ON `tabDrive Entity`.`owner` = `tabUser`.`email`
+    ON `tabUser Group Member`.`parent` = `Drive DocShare`.`user_name`
+    LEFT JOIN `tabUser` ON `Drive Entity`.`owner` = `tabUser`.`email`
     WHERE (`tabUser Group Member`.`user` = {user} 
-            OR `tabDrive DocShare`.`user_name` = {user} 
-            OR `tabDrive DocShare`.`everyone` = 1 
-            OR `tabDrive Entity`.`owner` = {user})
-        AND `tabDrive Entity`.`is_active` = 1
+            OR `Drive DocShare`.`user_name` = {user} 
+            OR `Drive DocShare`.`everyone` = 1 
+            OR `Drive Entity`.`owner` = {user})
+        AND `Drive Entity`.`is_active` = 1
         AND MATCH(title) AGAINST ({text} IN BOOLEAN MODE)
-        AND NOT `tabDrive Entity`.`name` LIKE {omit}
-    GROUP  BY `tabDrive Entity`.`name` 
+        AND NOT `Drive Entity`.`name` LIKE {omit}
+    GROUP  BY `Drive Entity`.`name` 
     """,
         as_dict=1,
     )
@@ -1343,12 +1343,12 @@ def generate_upward_path(entity_name):
         f"""
         WITH RECURSIVE generated_path as ( 
         SELECT 
-            `tabDrive Entity`.title,
-            `tabDrive Entity`.name,
-            `tabDrive Entity`.parent_drive_entity,
-            `tabDrive Entity`.owner
-        FROM `tabDrive Entity` 
-        WHERE `tabDrive Entity`.name = {entity_name}
+            `Drive Entity`.title,
+            `Drive Entity`.name,
+            `Drive Entity`.parent_drive_entity,
+            `Drive Entity`.owner
+        FROM `Drive Entity` 
+        WHERE `Drive Entity`.name = {entity_name}
 
         UNION ALL
 
@@ -1358,7 +1358,7 @@ def generate_upward_path(entity_name):
             t.parent_drive_entity,
             t.owner
         FROM generated_path as gp
-        JOIN `tabDrive Entity` as t ON t.name = gp.parent_drive_entity) 
+        JOIN `Drive Entity` as t ON t.name = gp.parent_drive_entity) 
         SELECT * FROM generated_path;
     """,
         as_dict=1,
@@ -1377,10 +1377,10 @@ def get_ancestors_of(entity_name):
         f"""
         WITH RECURSIVE generated_path as ( 
         SELECT 
-            `tabDrive Entity`.name,
-            `tabDrive Entity`.parent_drive_entity
-        FROM `tabDrive Entity` 
-        WHERE `tabDrive Entity`.name = {entity_name}
+            `Drive Entity`.name,
+            `Drive Entity`.parent_drive_entity
+        FROM `Drive Entity` 
+        WHERE `Drive Entity`.name = {entity_name}
 
         UNION ALL
 
@@ -1388,7 +1388,7 @@ def get_ancestors_of(entity_name):
             t.name,
             t.parent_drive_entity
         FROM generated_path as gp
-        JOIN `tabDrive Entity` as t ON t.name = gp.parent_drive_entity) 
+        JOIN `Drive Entity` as t ON t.name = gp.parent_drive_entity) 
         SELECT name FROM generated_path;
     """,
         as_dict=0,
@@ -1411,20 +1411,20 @@ def get_shared_breadcrumbs(share_name):
         f"""
         WITH RECURSIVE generated_path as ( 
         SELECT 
-            `tabDrive DocShare`.name,
-            `tabDrive DocShare`.share_name,
-            `tabDrive DocShare`.share_parent
-        FROM `tabDrive DocShare` 
-        WHERE `tabDrive DocShare`.name = {share_name}
+            `Drive DocShare`.name,
+            `Drive DocShare`.share_name,
+            `Drive DocShare`.share_parent
+        FROM `Drive DocShare` 
+        WHERE `Drive DocShare`.name = {share_name}
 
         UNION ALL
 
         SELECT 
-            `tabDrive DocShare`.name,
-            `tabDrive DocShare`.share_name,
-            `tabDrive DocShare`.share_parent
+            `Drive DocShare`.name,
+            `Drive DocShare`.share_name,
+            `Drive DocShare`.share_parent
         FROM generated_path as gp
-        JOIN `tabDrive DocShare` ON `tabDrive DocShare`.name = gp.share_parent
+        JOIN `Drive DocShare` ON `Drive DocShare`.name = gp.share_parent
         ) 
         SELECT * FROM generated_path;
     """,
